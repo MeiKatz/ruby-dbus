@@ -258,17 +258,6 @@ module DBus
       value.ljust(num_align(offset + value.bytesize, padding) - offset, "\0")
     end
 
-    # Append the the string _str_ itself to the packet.
-    def append_string(str)
-      @packet = align(@packet, padding: 4, offset: @offset)
-      @packet += [str.bytesize].pack("L") + [str].pack("Z*")
-    end
-
-    # Append the the signature _signature_ itself to the packet.
-    def append_signature(str)
-      @packet += str.bytesize.chr + str + "\0"
-    end
-
     # Append the array type _type_ to the packet and allow for appending
     # the child elements.
     def array(type)
@@ -300,44 +289,40 @@ module DBus
       type = Type::Parser.new(type).parse[0] if type.is_a?(String)
       case type.sigtype
       when Type::BYTE
-        @packet += val.chr
+        @packet += Types::Byte.marshall(val)
       when Type::UINT32
         @packet = align(@packet, padding: 4, offset: @offset)
-        @packet += [val].pack("L")
+        @packet += Types::UInt32.marshall(val)
       when Type::UNIX_FD
         @packet = align(@packet, padding: 4, offset: @offset)
-        @packet += [val].pack("L")
+        @packet += Types::UnixFD.marshall(val)
       when Type::UINT64
         @packet = align(@packet, padding: 8, offset: @offset)
-        @packet += [val].pack("Q")
+        @packet += Types::UInt64.marshall(val)
       when Type::INT64
         @packet = align(@packet, padding: 8, offset: @offset)
-        @packet += [val].pack("q")
+        @packet += Types::Int64.marshall(val)
       when Type::INT32
         @packet = align(@packet, padding: 4, offset: @offset)
-        @packet += [val].pack("l")
+        @packet += Types::Int32.marshall(val)
       when Type::UINT16
         @packet = align(@packet, padding: 2, offset: @offset)
-        @packet += [val].pack("S")
+        @packet += Types::UInt16.marshall(val)
       when Type::INT16
         @packet = align(@packet, padding: 2, offset: @offset)
-        @packet += [val].pack("s")
+        @packet += Types::Int16.marshall(val)
       when Type::DOUBLE
         @packet = align(@packet, padding: 8, offset: @offset)
-        @packet += [val].pack("d")
+        @packet += Types::Double.marshall(val)
       when Type::BOOLEAN
         @packet = align(@packet, padding: 4, offset: @offset)
-        @packet += if val
-                     [1].pack("L")
-                   else
-                     [0].pack("L")
-                   end
+        @packet += Types::Boolean.marshall(val)
       when Type::OBJECT_PATH
-        append_string(val)
+        @packet += Types::ObjectPath.marshall(val)
       when Type::STRING
-        append_string(val)
+        @packet += Types::String.marshall(val)
       when Type::SIGNATURE
-        append_signature(val)
+        @packet += Types::Signature.marshall(val)
       when Type::VARIANT
         vartype = nil
         if val.is_a?(Array) && val.size == 2
@@ -358,7 +343,7 @@ module DBus
           vartype = Type::Parser.new(vartype).parse[0]
         end
 
-        append_signature(vartype.to_s)
+        @packet += Types::Signature.marshall(vartype.to_s)
         @packet = align(@packet, padding: vartype.alignment, offset: @offset)
         sub = PacketMarshaller.new(@offset + @packet.bytesize)
         sub.append(vartype, vardata)
