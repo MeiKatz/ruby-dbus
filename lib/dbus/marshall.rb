@@ -128,57 +128,34 @@ module DBus
       packet = nil
       case signature.sigtype
       when Type::BYTE
-        packet = read(1).unpack("C")[0]
+        packet = Types::Byte.unmarshall(read(1))
       when Type::UINT16
         align(2)
-        packet = read(2).unpack(@uint16)[0]
+        packet = Types::UInt16.unmarshall(read(2), endianness: @endianness)
       when Type::INT16
         align(4)
-        packet = read(4).unpack(@uint16)[0]
-        if (packet & 0x8000) != 0
-          packet -= 0x10000
-        end
+        packet = Types::Int16.unmarshall(read(4), endianness: @endianness)
       when Type::UINT32
         align(4)
-        packet = read(4).unpack(@uint32)[0]
+        packet = Types::UInt32.unmarshall(read(4), endianness: @endianness)
       when Type::UNIX_FD
         align(4)
-        packet = read(4).unpack(@uint32)[0]
+        packet = Types::UnixFD.unmarshall(read(4), endianness: @endianness)
       when Type::INT32
         align(4)
-        packet = read(4).unpack(@uint32)[0]
-        if (packet & 0x80000000) != 0
-          packet -= 0x100000000
-        end
+        packet = Types::Int32.unmarshall(read(4), endianness: @endianness)
       when Type::UINT64
         align(8)
-        packet_l = read(4).unpack(@uint32)[0]
-        packet_h = read(4).unpack(@uint32)[0]
-        packet = if @endianness == LIL_END
-                   packet_l + packet_h * 2**32
-                 else
-                   packet_l * 2**32 + packet_h
-                 end
+        packet = Types::UInt64.unmarshall(read(8), endianness: @endianness)
       when Type::INT64
         align(8)
-        packet_l = read(4).unpack(@uint32)[0]
-        packet_h = read(4).unpack(@uint32)[0]
-        packet = if @endianness == LIL_END
-                   packet_l + packet_h * 2**32
-                 else
-                   packet_l * 2**32 + packet_h
-                 end
-        if (packet & 0x8000000000000000) != 0
-          packet -= 0x10000000000000000
-        end
+        packet = Types::Int64.unmarshall(read(8), endianness: @endianness)
       when Type::DOUBLE
         align(8)
-        packet = read(8).unpack(@double)[0]
+        packet = Types::Double.unmarshall(read(8), endianness: @endianness)
       when Type::BOOLEAN
         align(4)
-        v = read(4).unpack(@uint32)[0]
-        raise InvalidPacketException if ![0, 1].member?(v)
-        packet = (v == 1)
+        packet = Types::Boolean.unmarshall(read(4), endianness: @endianness)
       when Type::ARRAY
         align(4)
         # checks please
