@@ -40,16 +40,17 @@ module DBus
     # Unmarshall the buffer for a given _signature_ and length _len_.
     # Return an array of unmarshalled objects
     def unmarshall(signature, len = nil)
-      if !len.nil?
-        if @buffy.bytesize < @idx + len
-          raise IncompleteBufferException
-        end
+      if !len.nil? && @buffy.bytesize < @idx + len
+        raise IncompleteBufferException
       end
+
       sigtree = Type::Parser.new(signature).parse
       ret = []
+
       sigtree.each do |elem|
         ret << do_parse(elem)
       end
+
       ret
     end
 
@@ -74,7 +75,10 @@ module DBus
 
     # Retrieve the next _nbytes_ number of bytes from the buffer.
     def read(nbytes)
-      raise IncompleteBufferException if @idx + nbytes > @buffy.bytesize
+      if @idx + nbytes > @buffy.bytesize
+        raise IncompleteBufferException
+      end
+
       ret = @buffy.slice(@idx, nbytes)
       @idx += nbytes
       ret
@@ -101,9 +105,14 @@ module DBus
     def read_signature
       str_sz = read(1).unpack("C")[0]
       ret = @buffy.slice(@idx, str_sz)
-      raise IncompleteBufferException if @idx + str_sz + 1 >= @buffy.bytesize
+
+      if @idx + str_sz + 1 >= @buffy.bytesize
+        raise IncompleteBufferException
+      end
+
       @idx += str_sz
-      if @buffy[@idx].ord != 0
+
+      unless @buffy[@idx].ord == 0
         raise InvalidPacketException, "Type is not nul-terminated"
       end
       @idx += 1
@@ -166,6 +175,7 @@ module DBus
       when Type::STRUCT
         align(8)
         packet = []
+
         signature.members.each do |elem|
           packet << do_parse(elem)
         end
@@ -294,6 +304,7 @@ module DBus
         @packet += Types::Signature.marshall(val)
       when Type::VARIANT
         vartype = nil
+
         if val.is_a?(Array) && val.size == 2
           if val[0].is_a?(DBus::Type::Type)
             vartype, vardata = val
@@ -307,6 +318,7 @@ module DBus
             end
           end
         end
+
         if vartype.nil?
           vartype, vardata = PacketMarshaller.make_variant(val)
           vartype = Type::Parser.new(vartype).parse[0]
@@ -319,17 +331,22 @@ module DBus
         @packet += sub.packet
       when Type::ARRAY
         if val.is_a?(Hash)
-          raise TypeException, "Expected an Array but got a Hash" if type.child.sigtype != Type::DICT_ENTRY
+          unless type.child.sigtype == Type::DICT_ENTRY
+            raise TypeException, "Expected an Array but got a Hash"
+          end
           # Damn ruby rocks here
           val = val.to_a
         end
+
         # If string is recieved and ay is expected, explode the string
         if val.is_a?(String) && type.child.sigtype == Type::BYTE
           val = val.bytes
         end
-        if !val.is_a?(Enumerable)
+
+        unless val.is_a?(Enumerable)
           raise TypeException, "Expected an Enumerable of #{type.child.inspect} but got a #{val.class}"
         end
+
         array(type.child) do
           val.each do |elem|
             append(type.child, elem)
@@ -337,9 +354,10 @@ module DBus
         end
       when Type::STRUCT
         # TODO: use duck typing, val.respond_to?
-        if type.members.size != val.size
+        unless type.members.size == val.size
           raise TypeException, "Struct has #{val.size} elements but type info for #{type.members.size}"
         end
+
         struct do
           type.members.zip(val).each do |t, v|
             append(t, v)
@@ -347,13 +365,18 @@ module DBus
         end
       when Type::DICT_ENTRY
         # TODO: use duck typing, val.respond_to?
-        raise TypeException, "DE expects an Array" if !val.is_a?(Array)
-        if val.size != 2
+        unless val.is_a?(Array)
+          raise TypeException, "DE expects an Array"
+        end
+
+        unless val.size == 2
           raise TypeException, "Dict entry expects a pair"
         end
-        if type.members.size != val.size
+
+        unless type.members.size == val.size
           raise TypeException, "DE has #{val.size} elements but type info for #{type.members.size}"
         end
+
         struct do
           type.members.zip(val).each do |t, v|
             append(t, v)
@@ -368,30 +391,26 @@ module DBus
     # Make a [signature, value] pair for a variant
     def self.make_variant(value)
       # TODO: mix in _make_variant to String, Integer...
-      if value == true
-        ["b", true]
-      elsif value == false
-        ["b", false]
-      elsif value.nil?
-        ["b", nil]
-      elsif value.is_a? Float
-        ["d", value]
-      elsif value.is_a? Symbol
-        ["s", value.to_s]
-      elsif value.is_a? Array
-        ["av", value.map { |i| make_variant(i) }]
-      elsif value.is_a? Hash
+      case value
+      when true then ["b", true]
+      when false then ["b", false]
+      when nil then ["b", nil]
+      when Float then ["d", value]
+      when Symbol then ["s", value.to_s]
+      when Array then ["av", value.map { |i| make_variant(i) }]
+      when Hash
         h = {}
         value.each_key { |k| h[k] = make_variant(value[k]) }
         ["a{sv}", h]
-      elsif value.respond_to? :to_str
-        ["s", value.to_str]
-      elsif value.respond_to? :to_int
-        i = value.to_int
-        if -2_147_483_648 <= i && i < 2_147_483_648
-          ["i", i]
-        else
-          ["x", i]
+      else
+        if value.respond_to?(:to_s)
+          ["s", value.to_s]
+        elsif value.respond_to?(:to_i)
+          if -2_147_483_648 <= i && i < 2_147_483_648
+            ["i", i]
+          else
+            ["x", i]
+          end
         end
       end
     end
