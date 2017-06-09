@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class Variant
+    class Variant < AbstractType
       class << self
         def code
           @code ||= "v".freeze

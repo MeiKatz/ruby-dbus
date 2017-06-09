@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class Array
+    class Array < AbstractType
       class << self
         def code
           @code ||= "a".freeze

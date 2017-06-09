@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class UnixFD
+    class UnixFD < AbstractType
       class << self
         def code
           @code ||= "h".freeze

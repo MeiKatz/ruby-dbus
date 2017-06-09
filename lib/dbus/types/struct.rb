@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class Struct
+    class Struct < AbstractType
       class << self
         def code
           @code ||= "r".freeze

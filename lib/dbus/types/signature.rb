@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class Signature
+    class Signature < AbstractType
       class << self
         def code
           @code ||= "g".freeze

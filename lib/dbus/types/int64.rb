@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class Int64
+    class Int64 < AbstractType
       class << self
         def code
           @code ||= "x".freeze

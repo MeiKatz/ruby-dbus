@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class Boolean
+    class Boolean < AbstractType
       class << self
         def code
           @code ||= "b".freeze

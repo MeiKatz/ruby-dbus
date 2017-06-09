@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class ObjectPath
+    class ObjectPath < AbstractType
       class << self
         def code
           @code ||= "o".freeze

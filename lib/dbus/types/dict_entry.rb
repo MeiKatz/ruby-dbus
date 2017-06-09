@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class DictEntry
+    class DictEntry < AbstractType
       class << self
         def code
           @code ||= "e".freeze

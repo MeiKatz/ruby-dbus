@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class Double
+    class Double < AbstractType
       class << self
         def code
           @code ||= "d".freeze

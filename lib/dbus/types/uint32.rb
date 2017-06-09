@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class UInt32
+    class UInt32 < AbstractType
       class << self
         def code
           @code ||= "u".freeze

@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class String
+    class String < AbstractType
       class << self
         def code
           @code ||= "s".freeze

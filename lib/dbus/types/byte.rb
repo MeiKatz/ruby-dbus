@@ -1,6 +1,6 @@
 module DBus
   module Types
-    class Byte
+    class Byte < AbstractType
       class << self
         def code
           @code ||= "y".freeze
