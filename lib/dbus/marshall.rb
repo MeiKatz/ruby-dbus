@@ -34,17 +34,6 @@ module DBus
     def initialize(buffer, endianness)
       @buffy = buffer.dup
       @endianness = endianness
-      if @endianness == BIG_END
-        @uint32 = "N"
-        @uint16 = "n"
-        @double = "G"
-      elsif @endianness == LIL_END
-        @uint32 = "V"
-        @uint16 = "v"
-        @double = "E"
-      else
-        raise InvalidPacketException, "Incorrect endianness #{@endianness}"
-      end
       @idx = 0
     end
 
@@ -95,7 +84,7 @@ module DBus
     # Return the string.
     def read_string
       align(4)
-      str_sz = read(4).unpack(@uint32)[0]
+      str_sz = Types::UInt32.unmarshall(read(4), endianness: @endianness)
       ret = @buffy.slice(@idx, str_sz)
       raise IncompleteBufferException if @idx + str_sz + 1 > @buffy.bytesize
       @idx += str_sz
@@ -159,7 +148,7 @@ module DBus
       when Type::ARRAY
         align(4)
         # checks please
-        array_sz = read(4).unpack(@uint32)[0]
+        array_sz = Types::UInt32.unmarshall(read(4), endianness: @endianness)
         raise InvalidPacketException if array_sz > 67_108_864
 
         align(signature.child.alignment)
