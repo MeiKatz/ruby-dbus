@@ -301,7 +301,10 @@ module DBus
       case type.sigtype
       when Type::BYTE
         @packet += val.chr
-      when Type::UINT32, Type::UNIX_FD
+      when Type::UINT32
+        @packet = align(@packet, padding: 4, offset: @offset)
+        @packet += [val].pack("L")
+      when Type::UNIX_FD
         @packet = align(@packet, padding: 4, offset: @offset)
         @packet += [val].pack("L")
       when Type::UINT64
@@ -378,14 +381,24 @@ module DBus
             append(type.child, elem)
           end
         end
-      when Type::STRUCT, Type::DICT_ENTRY
+      when Type::STRUCT
         # TODO: use duck typing, val.respond_to?
-        raise TypeException, "Struct/DE expects an Array" if !val.is_a?(Array)
-        if type.sigtype == Type::DICT_ENTRY && val.size != 2
+        if type.members.size != val.size
+          raise TypeException, "Struct has #{val.size} elements but type info for #{type.members.size}"
+        end
+        struct do
+          type.members.zip(val).each do |t, v|
+            append(t, v)
+          end
+        end
+      when Type::DICT_ENTRY
+        # TODO: use duck typing, val.respond_to?
+        raise TypeException, "DE expects an Array" if !val.is_a?(Array)
+        if val.size != 2
           raise TypeException, "Dict entry expects a pair"
         end
         if type.members.size != val.size
-          raise TypeException, "Struct/DE has #{val.size} elements but type info for #{type.members.size}"
+          raise TypeException, "DE has #{val.size} elements but type info for #{type.members.size}"
         end
         struct do
           type.members.zip(val).each do |t, v|
