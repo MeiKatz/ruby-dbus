@@ -254,13 +254,13 @@ module DBus
     end
 
     # Align the buffer with NULL (\0) bytes on a byte length of _a_.
-    def align(a)
-      @packet = @packet.ljust(num_align(@offset + @packet.bytesize, a) - @offset, 0.chr)
+    def align(value, padding:, offset:)
+      value.ljust(num_align(offset + value.bytesize, padding) - offset, "\0")
     end
 
     # Append the the string _str_ itself to the packet.
     def append_string(str)
-      align(4)
+      @packet = align(@packet, padding: 4, offset: @offset)
       @packet += [str.bytesize].pack("L") + [str].pack("Z*")
     end
 
@@ -273,10 +273,10 @@ module DBus
     # the child elements.
     def array(type)
       # Thanks to Peter Rullmann for this line
-      align(4)
+      @packet = align(@packet, padding: 4, offset: @offset)
       sizeidx = @packet.bytesize
       @packet += "ABCD"
-      align(type.alignment)
+      @packet = align(@packet, padding: type.alignment, offset: @offset)
       contentidx = @packet.bytesize
       yield
       sz = @packet.bytesize - contentidx
@@ -286,7 +286,7 @@ module DBus
 
     # Align and allow for appending struct fields.
     def struct
-      align(8)
+      @packet = align(@packet, padding: 8, offset: @offset)
       yield
     end
 
@@ -302,28 +302,28 @@ module DBus
       when Type::BYTE
         @packet += val.chr
       when Type::UINT32, Type::UNIX_FD
-        align(4)
+        @packet = align(@packet, padding: 4, offset: @offset)
         @packet += [val].pack("L")
       when Type::UINT64
-        align(8)
+        @packet = align(@packet, padding: 8, offset: @offset)
         @packet += [val].pack("Q")
       when Type::INT64
-        align(8)
+        @packet = align(@packet, padding: 8, offset: @offset)
         @packet += [val].pack("q")
       when Type::INT32
-        align(4)
+        @packet = align(@packet, padding: 4, offset: @offset)
         @packet += [val].pack("l")
       when Type::UINT16
-        align(2)
+        @packet = align(@packet, padding: 2, offset: @offset)
         @packet += [val].pack("S")
       when Type::INT16
-        align(2)
+        @packet = align(@packet, padding: 2, offset: @offset)
         @packet += [val].pack("s")
       when Type::DOUBLE
-        align(8)
+        @packet = align(@packet, padding: 8, offset: @offset)
         @packet += [val].pack("d")
       when Type::BOOLEAN
-        align(4)
+        @packet = align(@packet, padding: 4, offset: @offset)
         @packet += if val
                      [1].pack("L")
                    else
@@ -356,7 +356,7 @@ module DBus
         end
 
         append_signature(vartype.to_s)
-        align(vartype.alignment)
+        @packet = align(@packet, padding: vartype.alignment, offset: @offset)
         sub = PacketMarshaller.new(@offset + @packet.bytesize)
         sub.append(vartype, vardata)
         @packet += sub.packet
