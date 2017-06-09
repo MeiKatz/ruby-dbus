@@ -6,6 +6,10 @@ module DBus
           @code ||= "g".freeze
         end
 
+        def alignment
+          @alignment ||= 1.freeze
+        end
+
         def marshall(value)
           value.bytesize.chr + value + "\0"
         end

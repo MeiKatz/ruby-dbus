@@ -6,6 +6,10 @@ module DBus
           @code ||= "s".freeze
         end
 
+        def alignment
+          @alignment ||= 4.freeze
+        end
+
         def marshall(value)
           [value.bytesize].pack("L") + [value].pack("Z*")
         end

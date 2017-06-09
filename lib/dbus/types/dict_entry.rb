@@ -5,6 +5,10 @@ module DBus
         def code
           @code ||= "e".freeze
         end
+
+        def alignment
+          @alignment ||= 8.freeze
+        end
       end
     end
   end

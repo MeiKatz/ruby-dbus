@@ -6,6 +6,10 @@ module DBus
           @code ||= "h".freeze
         end
 
+        def alignment
+          @alignment ||= 4.freeze
+        end
+
         def marshall(value)
           UInt32.marshall(value)
         end
