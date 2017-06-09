@@ -2,6 +2,10 @@ module DBus
   module Types
     class Boolean
       class << self
+        def code
+          @code ||= "b".freeze
+        end
+
         def marshall(value)
           if value
             [1].pack("L")

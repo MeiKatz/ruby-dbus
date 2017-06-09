@@ -529,7 +529,7 @@ module DBus
               m.member == "Introspect"
           reply = Message.new(Message::METHOD_RETURN).reply_to(m)
           reply.sender = @unique_name
-          reply.add_param(Type::STRING, node.to_xml)
+          reply.add_param(Types::String.code, node.to_xml)
           @message_queue.push(reply)
         else
           obj = node.object

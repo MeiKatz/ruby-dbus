@@ -159,12 +159,12 @@ module DBus
       @body_length = params.packet.bytesize
 
       marshaller = PacketMarshaller.new
-      marshaller.append(Type::BYTE, HOST_END)
-      marshaller.append(Type::BYTE, @message_type)
-      marshaller.append(Type::BYTE, @flags)
-      marshaller.append(Type::BYTE, @protocol)
-      marshaller.append(Type::UINT32, @body_length)
-      marshaller.append(Type::UINT32, @serial)
+      marshaller.append(Types::Byte.code, HOST_END)
+      marshaller.append(Types::Byte.code, @message_type)
+      marshaller.append(Types::Byte.code, @flags)
+      marshaller.append(Types::Byte.code, @protocol)
+      marshaller.append(Types::UInt32.code, @body_length)
+      marshaller.append(Types::UInt32.code, @serial)
 
       headers = []
       headers << [PATH,         ["o", @path]]         if @path
@@ -248,7 +248,7 @@ module DBus
     def initialize(error_name, description = nil)
       super(ERROR)
       @error_name = error_name
-      add_param(Type::STRING, description) unless description.nil?
+      add_param(Types::String.code, description) unless description.nil?
     end
 
     def self.from_exception(ex)

@@ -125,36 +125,36 @@ module DBus
     def do_parse(signature)
       packet = nil
       case signature.sigtype
-      when Type::BYTE
+      when Types::Byte.code
         packet = Types::Byte.unmarshall(read(1))
-      when Type::UINT16
+      when Types::UInt16.code
         align(2)
         packet = Types::UInt16.unmarshall(read(2), endianness: @endianness)
-      when Type::INT16
+      when Types::Int16.code
         align(4)
         packet = Types::Int16.unmarshall(read(4), endianness: @endianness)
-      when Type::UINT32
+      when Types::UInt32.code
         align(4)
         packet = Types::UInt32.unmarshall(read(4), endianness: @endianness)
-      when Type::UNIX_FD
+      when Types::UnixFD.code
         align(4)
         packet = Types::UnixFD.unmarshall(read(4), endianness: @endianness)
-      when Type::INT32
+      when Types::Int32.code
         align(4)
         packet = Types::Int32.unmarshall(read(4), endianness: @endianness)
-      when Type::UINT64
+      when Types::UInt64.code
         align(8)
         packet = Types::UInt64.unmarshall(read(8), endianness: @endianness)
-      when Type::INT64
+      when Types::Int64.code
         align(8)
         packet = Types::Int64.unmarshall(read(8), endianness: @endianness)
-      when Type::DOUBLE
+      when Types::Double.code
         align(8)
         packet = Types::Double.unmarshall(read(8), endianness: @endianness)
-      when Type::BOOLEAN
+      when Types::Boolean.code
         align(4)
         packet = Types::Boolean.unmarshall(read(4), endianness: @endianness)
-      when Type::ARRAY
+      when Types::Array.code
         align(4)
         # checks please
         array_sz = Types::UInt32.unmarshall(read(4), endianness: @endianness)
@@ -169,30 +169,30 @@ module DBus
           packet << do_parse(signature.child)
         end
 
-        if signature.child.sigtype == Type::DICT_ENTRY
+        if signature.child.sigtype == Types::DictEntry.code
           packet = Hash[packet]
         end
-      when Type::STRUCT
+      when Types::Struct.code
         align(8)
         packet = []
 
         signature.members.each do |elem|
           packet << do_parse(elem)
         end
-      when Type::VARIANT
+      when Types::Variant.code
         string = read_signature
         # error checking please
         sig = Type::Parser.new(string).parse[0]
         align(sig.alignment)
         packet = do_parse(sig)
-      when Type::OBJECT_PATH
+      when Types::ObjectPath.code
         packet = read_string
-      when Type::STRING
+      when Types::String.code
         packet = read_string
         packet.force_encoding("UTF-8")
-      when Type::SIGNATURE
+      when Types::Signature.code
         packet = read_signature
-      when Type::DICT_ENTRY
+      when Types::DictEntry.code
         align(8)
         key = do_parse(signature.members[0])
         value = do_parse(signature.members[1])
@@ -267,42 +267,42 @@ module DBus
       type = type.chr if type.is_a?(Integer)
       type = Type::Parser.new(type).parse[0] if type.is_a?(String)
       case type.sigtype
-      when Type::BYTE
+      when Types::Byte.code
         @packet += Types::Byte.marshall(val)
-      when Type::UINT32
+      when Types::UInt32.code
         @packet = align(@packet, padding: 4, offset: @offset)
         @packet += Types::UInt32.marshall(val)
-      when Type::UNIX_FD
+      when Types::UnixFD.code
         @packet = align(@packet, padding: 4, offset: @offset)
         @packet += Types::UnixFD.marshall(val)
-      when Type::UINT64
+      when Types::UInt64.code
         @packet = align(@packet, padding: 8, offset: @offset)
         @packet += Types::UInt64.marshall(val)
-      when Type::INT64
+      when Types::Int64.code
         @packet = align(@packet, padding: 8, offset: @offset)
         @packet += Types::Int64.marshall(val)
-      when Type::INT32
+      when Types::Int32.code
         @packet = align(@packet, padding: 4, offset: @offset)
         @packet += Types::Int32.marshall(val)
-      when Type::UINT16
+      when Types::UInt16.code
         @packet = align(@packet, padding: 2, offset: @offset)
         @packet += Types::UInt16.marshall(val)
-      when Type::INT16
+      when Types::Int16.code
         @packet = align(@packet, padding: 2, offset: @offset)
         @packet += Types::Int16.marshall(val)
-      when Type::DOUBLE
+      when Types::Double.code
         @packet = align(@packet, padding: 8, offset: @offset)
         @packet += Types::Double.marshall(val)
-      when Type::BOOLEAN
+      when Types::Boolean.code
         @packet = align(@packet, padding: 4, offset: @offset)
         @packet += Types::Boolean.marshall(val)
-      when Type::OBJECT_PATH
+      when Types::ObjectPath.code
         @packet += Types::ObjectPath.marshall(val)
-      when Type::STRING
+      when Types::String.code
         @packet += Types::String.marshall(val)
-      when Type::SIGNATURE
+      when Types::Signature.code
         @packet += Types::Signature.marshall(val)
-      when Type::VARIANT
+      when Types::Variant.code
         vartype = nil
 
         if val.is_a?(Array) && val.size == 2
@@ -329,9 +329,9 @@ module DBus
         sub = PacketMarshaller.new(@offset + @packet.bytesize)
         sub.append(vartype, vardata)
         @packet += sub.packet
-      when Type::ARRAY
+      when Types::Array.code
         if val.is_a?(Hash)
-          unless type.child.sigtype == Type::DICT_ENTRY
+          unless type.child.sigtype == Types::DictEntry.code
             raise TypeException, "Expected an Array but got a Hash"
           end
           # Damn ruby rocks here
@@ -339,7 +339,7 @@ module DBus
         end
 
         # If string is recieved and ay is expected, explode the string
-        if val.is_a?(String) && type.child.sigtype == Type::BYTE
+        if val.is_a?(String) && type.child.sigtype == Types::Byte.code
           val = val.bytes
         end
 
@@ -352,7 +352,7 @@ module DBus
             append(type.child, elem)
           end
         end
-      when Type::STRUCT
+      when Types::Struct.code
         # TODO: use duck typing, val.respond_to?
         unless type.members.size == val.size
           raise TypeException, "Struct has #{val.size} elements but type info for #{type.members.size}"
@@ -363,7 +363,7 @@ module DBus
             append(t, v)
           end
         end
-      when Type::DICT_ENTRY
+      when Types::DictEntry.code
         # TODO: use duck typing, val.respond_to?
         unless val.is_a?(Array)
           raise TypeException, "DE expects an Array"

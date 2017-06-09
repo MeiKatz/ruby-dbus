@@ -2,6 +2,10 @@ module DBus
   module Types
     class UInt32
       class << self
+        def code
+          @code ||= "u".freeze
+        end
+
         def marshall(value)
           [value].pack("L")
         end

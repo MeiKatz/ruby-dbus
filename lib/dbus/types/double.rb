@@ -2,6 +2,10 @@ module DBus
   module Types
     class Double
       class << self
+        def code
+          @code ||= "d".freeze
+        end
+
         def marshall(value)
           [value].pack("d")
         end

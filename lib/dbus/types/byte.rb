@@ -2,6 +2,10 @@ module DBus
   module Types
     class Byte
       class << self
+        def code
+          @code ||= "y".freeze
+        end
+
         def marshall(value)
           value.chr
         end

@@ -2,6 +2,10 @@ module DBus
   module Types
     class UnixFD
       class << self
+        def code
+          @code ||= "h".freeze
+        end
+
         def marshall(value)
           UInt32.marshall(value)
         end
