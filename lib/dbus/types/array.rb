@@ -9,6 +9,10 @@ module DBus
         def alignment
           @alignment ||= 4.freeze
         end
+
+        def basic_type?
+          false
+        end
       end
     end
   end
