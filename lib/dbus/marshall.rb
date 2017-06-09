@@ -138,7 +138,10 @@ module DBus
         if (packet & 0x8000) != 0
           packet -= 0x10000
         end
-      when Type::UINT32, Type::UNIX_FD
+      when Type::UINT32
+        align(4)
+        packet = read(4).unpack(@uint32)[0]
+      when Type::UNIX_FD
         align(4)
         packet = read(4).unpack(@uint32)[0]
       when Type::INT32
