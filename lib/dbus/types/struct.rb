@@ -14,6 +14,18 @@ module DBus
           false
         end
       end
+
+      def initialize(*subtypes)
+        @subtypes = subtypes
+      end
+
+      def to_s
+        "(#{subtypes.map(&:to_s).join})"
+      end
+
+      private
+
+      attr_reader :subtypes
     end
   end
 end
