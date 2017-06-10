@@ -24,6 +24,10 @@ module DBus
           packet
         end
       end
+
+      def inspect
+        "INT32"
+      end
     end
   end
 end

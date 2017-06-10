@@ -14,6 +14,10 @@ module DBus
           [value.bytesize].pack("L") + [value].pack("Z*")
         end
       end
+
+      def inspect
+        "STRING"
+      end
     end
   end
 end

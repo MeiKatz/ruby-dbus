@@ -22,6 +22,10 @@ module DBus
           end
         end
       end
+
+      def inspect
+        "UINT16"
+      end
     end
   end
 end

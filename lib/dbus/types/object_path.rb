@@ -14,6 +14,10 @@ module DBus
           String.marshall(value)
         end
       end
+
+      def inspect
+        "OBJECT_PATH"
+      end
     end
   end
 end

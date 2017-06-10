@@ -16,11 +16,19 @@ module DBus
       end
 
       def initialize(*subtypes)
+        if subtypes.count == 0
+          raise "Struct must have at least one subtype"
+        end
+
         @subtypes = subtypes
       end
 
       def to_s
         "(#{subtypes.map(&:to_s).join})"
+      end
+
+      def inspect
+        "STRUCT of (#{subtypes.map(&:inspect).join(", ")})"
       end
 
       private

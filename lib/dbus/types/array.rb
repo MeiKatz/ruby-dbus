@@ -23,6 +23,10 @@ module DBus
         "a#{subtype.to_s}"
       end
 
+      def inspect
+        "ARRAY of #{subtype.inspect}"
+      end
+
       private
 
       attr_reader :subtype

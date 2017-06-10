@@ -22,6 +22,10 @@ module DBus
           end
         end
       end
+
+      def inspect
+        "DOUBLE"
+      end
     end
   end
 end

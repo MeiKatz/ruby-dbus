@@ -18,6 +18,10 @@ module DBus
           value.unpack("C")[0]
         end
       end
+
+      def inspect
+        "BYTE"
+      end
     end
   end
 end

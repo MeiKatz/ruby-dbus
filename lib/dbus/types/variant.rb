@@ -14,6 +14,10 @@ module DBus
           false
         end
       end
+
+      def inspect
+        "VARIANT"
+      end
     end
   end
 end

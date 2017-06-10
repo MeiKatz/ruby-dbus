@@ -28,6 +28,10 @@ module DBus
           end
         end
       end
+
+      def inspect
+        "UINT64"
+      end
     end
   end
 end

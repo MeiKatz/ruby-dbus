@@ -14,6 +14,10 @@ module DBus
           value.bytesize.chr + value + "\0"
         end
       end
+
+      def inspect
+        "SIGNATURE"
+      end
     end
   end
 end

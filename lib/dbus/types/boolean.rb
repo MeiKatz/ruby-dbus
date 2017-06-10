@@ -33,6 +33,10 @@ module DBus
           end
         end
       end
+
+      def inspect
+        "BOOLEAN"
+      end
     end
   end
 end

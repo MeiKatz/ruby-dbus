@@ -18,6 +18,10 @@ module DBus
           UInt32.unmarshall(value, endianness: endianness)
         end
       end
+
+      def inspect
+        "UNIX_FD"
+      end
     end
   end
 end

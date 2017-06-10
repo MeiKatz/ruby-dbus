@@ -28,6 +28,10 @@ module DBus
         "{#{key_type}#{value_type}}"
       end
 
+      def inspect
+        "DICT_ENTRY"
+      end
+
       private
 
       attr_reader :key_type
