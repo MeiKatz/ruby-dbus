@@ -15,6 +15,12 @@ module DBus
         end
       end
 
+      def append_to(buffer, value:)
+        buffer
+          .align(self.class.alignment)
+          .append(self.class.marshall(value))
+      end
+
       def inspect
         "OBJECT_PATH"
       end

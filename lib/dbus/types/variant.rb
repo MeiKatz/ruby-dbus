@@ -15,6 +15,10 @@ module DBus
         end
       end
 
+      def append_to(buffer, value:)
+        # @todo
+      end
+
       def inspect
         "VARIANT"
       end

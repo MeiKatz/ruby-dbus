@@ -16,11 +16,20 @@ module DBus
       end
 
       def initialize(*subtypes)
-        if subtypes.count == 0
+        if subtypes.size == 0
           raise "Struct must have at least one subtype"
         end
 
         @subtypes = subtypes
+      end
+
+      def append_to(buffer, value:)
+        unless subtypes.size == value.size
+          raise "wrong number of values (#{value.size} for #{subtypes.size})"
+        end
+
+        buffer = align_buffer_with_struct(buffer)
+        append_elements(value, buffer: buffer)
       end
 
       def to_s
@@ -34,6 +43,16 @@ module DBus
       private
 
       attr_reader :subtypes
+
+      def align_buffer_with_struct(buffer)
+        buffer.align(self.class.alignment)
+      end
+
+      def append_elements(elements, buffer:)
+        elements.reduce(buffer) do |buffer, element|
+          subtype.append_to(buffer, value: element)
+        end
+      end
     end
   end
 end
